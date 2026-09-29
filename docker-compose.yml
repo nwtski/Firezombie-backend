@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: firezombie_db
+    environment:
+      POSTGRES_USER: firezombie
+      POSTGRES_PASSWORD: firezombie_pwd
+      POSTGRES_DB: firezombie_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U firezombie"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: firezombie_backend
+    environment:
+      DATABASE_URL: postgresql://firezombie:firezombie_pwd@postgres:5432/firezombie_db
+      SECRET_KEY: your-secret-key-change-in-production
+      STRIPE_SECRET_KEY: sk_test_your_stripe_key
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
