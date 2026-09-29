@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Subscription Audit — Connected Backend</title>
+    <style>
+        :root{--bg:#0b1016;--panel:#121b25;--line:#293846;--text:#eef4f7;--muted:#93a2af;--mint:#70e6c2;--amber:#ffca78;--red:#ff858b}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#183a34,transparent 42%),var(--bg);color:var(--text);font:14px/1.5 system-ui,Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.wrap{max-width:1080px;margin:auto;padding:22px}.top,.row,.actions{display:flex;align-items:center;justify-content:space-between;gap:10px}.top{margin-bottom:24px;flex-wrap:wrap}.brand{font-weight:800;font-size:18px}.brand b{display:inline-grid;place-items:center;width:38px;height:38px;margin-right:9px;border-radius:12px;background:linear-gradient(135deg,#a0f2db,#42bd9e);color:#092019}.muted,small{color:var(--muted)}h1{margin:4px 0;font-size:clamp(28px,4vw,38px)}h2{font-size:16px;margin:0}p{margin:5px 0;color:var(--muted)}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);border-radius:9px;background:#17232e;color:var(--text);padding:8px 12px;font-weight:650}.btn:hover{border-color:#5c778a}.btn.primary{background:linear-gradient(130deg,#a0f2db,#56d7b4);color:#092019;border:0}.btn.sm{font-size:11px;padding:6px 8px}.card,.stat{background:linear-gradient(145deg,#151f29,#111820);border:1px solid var(--line);border-radius:15px;padding:16px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}.stat label{font-size:11px;color:var(--muted)}.stat strong{display:block;font-size:26px;margin-top:5px}.filters{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.input,select,textarea{background:#0b1118;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px}.search{min-width:200px}.list{display:grid;gap:9px}.item{display:grid;grid-template-columns:1.5fr .8fr 1fr 1fr auto;gap:10px;align-items:center;padding:12px;border:1px solid #253440;background:#0d141b;border-radius:10px}.item.header{background:transparent;border:0;color:var(--muted);font-size:10px;text-transform:uppercase}.name{font-weight:700}.sub,.tiny{font-size:11px;color:var(--muted)}.pill{display:inline-block;border:1px solid #455966;border-radius:20px;padding:2px 8px;font-size:10px;color:#c9d5dc}.keep{color:var(--mint);border-color:#387362}.review{color:var(--amber);border-color:#7b633d}.cancel_candidate{color:var(--red);border-color:#743e45}.unreviewed{color:#c9d5dc}.notice{padding:11px;border:1px solid #285448;background:#14251f;border-radius:9px;font-size:11px;color:#c9d8d3;margin:12px 0}.empty{padding:18px;text-align:center;color:var(--muted)}.auth-form{max-width:400px;margin:40px auto;padding:30px;background:var(--panel);border:1px solid var(--line);border-radius:15px}.field{margin-bottom:14px}.field label{display:block;font-size:11px;color:#b6c2ca;margin-bottom:4px}.field input{width:100%;padding:10px;background:#0b1118;color:var(--text);border:1px solid var(--line);border-radius:8px}.status-bar{display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--panel);border:1px solid var(--line);border-radius:9px;margin-bottom:14px;font-size:11px}.logged-in{color:var(--mint)}.logged-out{color:var(--muted)}dialog{width:min(540px,calc(100% - 20px));max-height:90vh;overflow:auto;background:#121b25;color:var(--text);border:1px solid var(--line);border-radius:16px;padding:0}dialog::backdrop{background:#000a;backdrop-filter:blur(3px)}.modal{padding:20px}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.x{border:0;background:none;color:var(--muted);font-size:22px}.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{display:grid;gap:4px}.field.full{grid-column:1/-1}.field label{font-size:11px;color:#b6c2ca}.field input,.field select,.field textarea{width:100%}.field textarea{min-height:85px}.end{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.footer{margin-top:18px;font-size:10px;color:#84929e;line-height:1.6}.toast{position:fixed;bottom:18px;left:50%;transform:translate(-50%,15px);opacity:0;background:#e6fff6;color:#09231a;padding:9px 13px;border-radius:9px;font-weight:700;font-size:12px;transition:.2s;z-index:9999}.toast.show{opacity:1;transform:translate(-50%,0)}.hidden{display:none!important}@media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}.item{grid-template-columns:1fr 1fr}.item.header{display:none}}@media(max-width:520px){.wrap{padding:14px}.stats{gap:7px}.stat{padding:12px}.stat strong{font-size:22px}.item{grid-template-columns:1fr}.form{grid-template-columns:1fr}.field.full{grid-column:auto}}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="top">
+        <div>
+            <div class="brand"><b>SA</b>Subscription Audit<br><small>· Connected Backend</small></div>
+        </div>
+        <div class="toolbar">
+            <div class="status-bar">
+                <span id="authStatus" class="logged-out">Not logged in</span>
+                <button class="btn sm" id="authBtn" onclick="toggleAuth()">Sign In</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainContent" style="display:none">
+        <h1>AUDIT YOUR SUBSCRIPTIONS</h1>
+        <h2>Connected to your account.</h2>
+        <p>All data is saved to your account and synced across devices. No browser storage.</p>
+
+        <div class="stats">
+            <div class="stat">
+                <label>Active subscriptions</label>
+                <strong id="activeCount">0</strong>
+            </div>
+            <div class="stat">
+                <label>Need a decision</label>
+                <strong id="pendingCount">0</strong>
+            </div>
+            <div class="stat">
+                <label>Marked to keep</label>
+                <strong id="keepCount">0</strong>
+            </div>
+            <div class="stat">
+                <label>Potential savings</label>
+                <strong id="savings">$0.00/mo</strong>
+                <small id="annualSavings">$0.00/year if canceled</small>
+            </div>
+        </div>
+
+        <h2 style="margin-top:28px">Add and manage subscriptions</h2>
+        <p>Track cost, usage, and decide what to keep or cancel.</p>
+
+        <div class="filters">
+            <input class="input search" id="search" placeholder="Search subscriptions" type="text">
+            <select class="input" id="filter">
+                <option value="all">All review states</option>
+                <option value="unreviewed">Not reviewed</option>
+                <option value="keep">Keep</option>
+                <option value="review">Review later</option>
+                <option value="cancel_candidate">Consider canceling</option>
+            </select>
+            <button class="btn primary" onclick="openAddDialog()">+ Add subscription</button>
+        </div>
+
+        <div class="list">
+            <div class="item header">
+                <div>Service</div>
+                <div>Cost</div>
+                <div>Use</div>
+                <div>Decision</div>
+                <div>Action</div>
+            </div>
+            <div id="rows"></div>
+            <div id="empty" class="empty">No subscriptions yet. Add your first one!</div>
+        </div>
+
+        <div class="notice">
+            <strong>Backend-connected:</strong> Data is saved to your account database. Changes sync across all your devices. No local storage used.
+        </div>
+    </div>
+
+    <div id="authContent">
+        <div class="auth-form">
+            <h2 style="margin-bottom:20px">Sign In or Create Account</h2>
+            <div class="field">
+                <label>Email</label>
+                <input type="email" id="authEmail" placeholder="your@email.com">
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="authPassword" placeholder="••••••••">
+            </div>
+            <div class="field" style="display:flex;gap:8px;margin-top:20px">
+                <button class="btn primary" style="flex:1" onclick="authSignUp()">Create Account</button>
+                <button class="btn primary" style="flex:1" onclick="authLogin()">Sign In</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<dialog id="addDialog">
+    <div class="modal">
+        <div class="modalhead">
+            <h2>Add subscription</h2>
+            <button class="x" id="closeX" onclick="closeDialog('addDialog')">×</button>
+        </div>
+        <form id="addForm" class="form" onsubmit="handleAddSubmit(event)">
+            <div class="field full">
+                <label>Service name</label>
+                <input type="text" id="addName" required placeholder="Netflix, Spotify, etc.">
+            </div>
+            <div class="field">
+                <label>Monthly cost (AUD)</label>
+                <input type="number" id="addAmount" required step="0.01" min="0" placeholder="0.00">
+            </div>
+            <div class="field">
+                <label>Billing cycle</label>
+                <select id="addCadence">
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+            </div>
+            <div class="field full">
+                <label>Category</label>
+                <select id="addCategory">
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Productivity">Productivity</option>
+                    <option value="Software">Software</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="end">
+                <button type="button" class="btn" onclick="closeDialog('addDialog')">Cancel</button>
+                <button type="submit" class="btn primary">Add subscription</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<dialog id="reviewDialog">
+    <div class="modal">
+        <div class="modalhead">
+            <h2 id="reviewTitle">Review subscription</h2>
+            <button class="x" onclick="closeDialog('reviewDialog')">×</button>
+        </div>
+        <form id="reviewForm" class="form" onsubmit="handleReviewSubmit(event)">
+            <div class="field full">
+                <label>Your decision</label>
+                <select id="decision">
+                    <option value="unreviewed">Not reviewed</option>
+                    <option value="keep">Keep</option>
+                    <option value="review">Review later</option>
+                    <option value="cancel_candidate">Consider canceling</option>
+                </select>
+            </div>
+            <div class="field full">
+                <label>How often do you use it?</label>
+                <select id="usage">
+                    <option value="unknown">Not sure</option>
+                    <option value="often">Often</option>
+                    <option value="sometimes">Sometimes</option>
+                    <option value="rarely">Rarely</option>
+                    <option value="never">Never</option>
+                </select>
+            </div>
+            <div class="field full">
+                <label>Note (optional)</label>
+                <textarea id="notes" placeholder="Why you want to keep or review it…"></textarea>
+            </div>
+            <div class="end">
+                <button type="button" class="btn" onclick="closeDialog('reviewDialog')">Close</button>
+                <button type="submit" class="btn primary">Save review</button>
+                <button type="button" class="btn" style="background:rgba(239,68,68,0.2);border-color:#ff858b;color:#ff858b" onclick="deleteCurrentSub()">Delete</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const API_BASE = 'http://localhost:8000';
+let currentUser = null;
+let currentToken = null;
+let currentSubId = null;
+let subscriptions = [];
+
+// Load token from localStorage on startup
+function initAuth() {
+    const stored = localStorage.getItem('auth_token');
+    if (stored) {
+        currentToken = stored;
+        verifyAndLoadUser();
+    } else {
+        showAuthScreen();
+    }
+}
+
+async function verifyAndLoadUser() {
+    try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({token: currentToken})
+        });
+        if (res.ok) {
+            const user = await res.json();
+            currentUser = user;
+            showMainScreen();
+            loadSubscriptions();
+        } else {
+            localStorage.removeItem('auth_token');
+            currentToken = null;
+            showAuthScreen();
+        }
+    } catch (e) {
+        console.error(e);
+        showAuthScreen();
+    }
+}
+
+function toggleAuth() {
+    if (currentUser) {
+        currentUser = null;
+        currentToken = null;
+        localStorage.removeItem('auth_token');
+        showAuthScreen();
+    } else {
+        showAuthScreen();
+    }
+}
+
+async function authSignUp() {
+    const email = document.getElementById('authEmail').value;
+    const password = document.getElementById('authPassword').value;
+    if (!email || !password) { toast('Email and password required'); return; }
+    
+    try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email, password})
+        });
+        if (res.ok) {
+            const data = await res.json();
+            currentToken = data.token;
+            currentUser = {user_id: data.user_id, email: data.email};
+            localStorage.setItem('auth_token', currentToken);
+            showMainScreen();
+            loadSubscriptions();
+            toast('Account created!');
+        } else {
+            const err = await res.json();
+            toast(err.detail || 'Sign up failed');
+        }
+    } catch (e) {
+        toast('Error: ' + e.message);
+    }
+}
+
+async function authLogin() {
+    const email = document.getElementById('authEmail').value;
+    const password = document.getElementById('authPassword').value;
+    if (!email || !password) { toast('Email and password required'); return; }
+    
+    try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email, password})
+        });
+        if (res.ok) {
+            const data = await res.json();
+            currentToken = data.token;
+            currentUser = {user_id: data.user_id, email: data.email};
+            localStorage.setItem('auth_token', currentToken);
+            showMainScreen();
+            loadSubscriptions();
+            toast('Logged in!');
+        } else {
+            toast('Invalid email or password');
+        }
+    } catch (e) {
+        toast('Error: ' + e.message);
+    }
+}
+
+function showAuthScreen() {
+    document.getElementById('authContent').style.display = 'block';
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('authStatus').textContent = 'Not logged in';
+    document.getElementById('authStatus').className = 'logged-out';
+    document.getElementById('authBtn').textContent = 'Sign In';
+}
+
+function showMainScreen() {
+    document.getElementById('authContent').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    document.getElementById('authStatus').textContent = `Logged in as ${currentUser.email}`;
+    document.getElementById('authStatus').className = 'logged-in';
+    document.getElementById('authBtn').textContent = 'Sign Out';
+}
+
+async function loadSubscriptions() {
+    try {
+        const res = await fetch(`${API_BASE}/audit/subscriptions?token=${currentToken}`);
+        if (res.ok) {
+            subscriptions = await res.json();
+            render();
+        } else {
+            toast('Failed to load subscriptions');
+        }
+    } catch (e) {
+        toast('Error: ' + e.message);
+    }
+}
+
+async function handleAddSubmit(e) {
+    e.preventDefault();
+    const data = {
+        token: currentToken,
+        name: document.getElementById('addName').value,
+        amount: parseFloat(document.getElementById('addAmount').value),
+        cadence: document.getElementById('addCadence').value,
+        category: document.getElementById('addCategory').value,
+        status: 'active'
+    };
+    
+    try {
+        const res = await fetch(`${API_BASE}/audit/subscriptions`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        if (res.ok) {
+            document.getElementById('addForm').reset();
+            closeDialog('addDialog');
+            loadSubscriptions();
+            toast('Subscription added!');
+        }
+    } catch (e) {
+        toast('Error: ' + e.message);
+    }
+}
+
+async function handleReviewSubmit(e) {
+    e.preventDefault();
+    const data = {
+        token: currentToken,
+        reviewChoice: document.getElementById('decision').value,
+        usage: document.getElementById('usage').value,
+        reviewNotes: document.getElementById('notes').value.trim()
+    };
+    
+    try {
+        const res = await fetch(`${API_BASE}/audit/subscriptions/${currentSubId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        if (res.ok) {
+            closeDialog('reviewDialog');
+            loadSubscriptions();
+            toast('Review saved!');
+        }
+    } catch (e) {
+        toast('Error: ' + e.message);
+    }
+}
+
+async function deleteCurrentSub() {
+    if (!confirm('Delete this subscription?')) return;
+    try {
+        const res = await fetch(`${API_BASE}/audit/subscriptions/${currentSubId}`, {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({token: currentToken})
+        });
+        if (res.ok) {
+            closeDialog('reviewDialog');
+            loadSubscriptions();
+            toast('Subscription deleted');
+        }
+    } catch (e) {
+        toast('Error: ' + e.message);
+    }
+}
+
+function openAddDialog() {
+    document.getElementById('addDialog').showModal();
+}
+
+function openReviewDialog(id) {
+    currentSubId = id;
+    const sub = subscriptions.find(x => x.id === id);
+    if (!sub) return;
+    
+    document.getElementById('reviewTitle').textContent = 'Review · ' + sub.name;
+    document.getElementById('decision').value = sub.reviewChoice || 'unreviewed';
+    document.getElementById('usage').value = sub.usage || 'unknown';
+    document.getElementById('notes').value = sub.reviewNotes || '';
+    document.getElementById('reviewDialog').showModal();
+}
+
+function closeDialog(id) {
+    document.getElementById(id).close();
+}
+
+function render() {
+    let active = subscriptions.filter(x => x.status !== 'canceled'),
+        candidates = active.filter(x => x.reviewChoice === 'cancel_candidate'),
+        pending = active.filter(x => !x.reviewChoice || x.reviewChoice === 'unreviewed' || x.reviewChoice === 'review'),
+        kept = active.filter(x => x.reviewChoice === 'keep'),
+        save = candidates.reduce((n, x) => n + (Number(x.amount) / (x.cadence === 'yearly' ? 12 : 1)), 0);
+    
+    document.getElementById('activeCount').textContent = active.length;
+    document.getElementById('pendingCount').textContent = pending.length;
+    document.getElementById('keepCount').textContent = kept.length;
+    document.getElementById('savings').textContent = '$' + save.toFixed(2) + '/mo';
+    document.getElementById('annualSavings').textContent = '$' + (save * 12).toFixed(2) + '/year if canceled';
+    
+    let q = document.getElementById('search').value.toLowerCase(),
+        f = document.getElementById('filter').value,
+        view = subscriptions.filter(x => x.status !== 'canceled' && (f === 'all' || (x.reviewChoice || 'unreviewed') === f) && (x.name + ' ' + x.category).toLowerCase().includes(q));
+    
+    view.sort((a, b) => ({cancel_candidate: 0, unreviewed: 1, review: 2, keep: 3}[a.reviewChoice || 'unreviewed'] - ({cancel_candidate: 0, unreviewed: 1, review: 2, keep: 3}[b.reviewChoice || 'unreviewed'])));
+    
+    let box = document.getElementById('rows');
+    box.replaceChildren();
+    document.getElementById('empty').classList.toggle('hidden', view.length > 0);
+    
+    view.forEach(x => {
+        let row = document.createElement('div');
+        row.className = 'item';
+        let choice = x.reviewChoice || 'unreviewed';
+        let label = ({unreviewed:'Not reviewed', keep:'Keep', review:'Review later', cancel_candidate:'Consider canceling'})[choice];
+        row.innerHTML = `
+            <div><div class="name">${x.name}</div><div class="sub">${x.category}</div></div>
+            <div>$${Number(x.amount).toFixed(2)}/${x.cadence === 'yearly' ? 'yr' : 'mo'}</div>
+            <div class="sub">${x.usage || 'Not rated'}</div>
+            <div><span class="pill ${choice}">${label}</span></div>
+            <div><button class="btn sm" onclick="openReviewDialog(${x.id})">Review</button></div>
+        `;
+        box.append(row);
+    });
+}
+
+function toast(s) {
+    const el = document.getElementById('toast');
+    el.textContent = s;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+document.getElementById('search').oninput = render;
+document.getElementById('filter').onchange = render;
+
+initAuth();
+</script>
+</body>
+</html>
