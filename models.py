@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Text
-from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
-Base = declarative_base()
+# Share the one Base from database.py so main.py's create_all() sees these tables
+from database import Base
 
 class User(Base):
     __tablename__ = "users"
