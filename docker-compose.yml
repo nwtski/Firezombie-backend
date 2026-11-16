@@ -23,8 +23,13 @@ services:
     container_name: firezombie_backend
     environment:
       DATABASE_URL: postgresql://firezombie:firezombie_pwd@postgres:5432/firezombie_db
-      SECRET_KEY: your-secret-key-change-in-production
-      STRIPE_SECRET_KEY: sk_test_your_stripe_key
+      # Values come from a .env file next to this file (copy .env.example to .env)
+      JWT_SECRET: ${JWT_SECRET:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
     ports:
       - "8000:8000"
     depends_on:
